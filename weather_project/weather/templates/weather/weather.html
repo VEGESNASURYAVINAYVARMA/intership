@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather Report</title>
+    <style>
+        body { font-family: Arial; margin: 40px; background: #f0f4f8; }
+        .weather-box { background: white; padding: 20px; border-radius: 10px; width: 350px; margin: auto; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1);}
+        .forecast { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="weather-box">
+        <h2>🌤 Weather Report</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="text" name="city" placeholder="Enter city name" required>
+            <button type="submit">Get Weather</button>
+        </form>
+
+        {% if weather_data %}
+            <h3>{{ weather_data.city }}</h3>
+            <img src="http://openweathermap.org/img/wn/{{ weather_data.icon }}@2x.png">
+            <p><b>{{ weather_data.temperature }}°C</b></p>
+            <p>{{ weather_data.description }}</p>
+            <p>Humidity: {{ weather_data.humidity }}%</p>
+        {% endif %}
+
+        {% if forecast_data %}
+            <div class="forecast">
+                <h4>Forecast</h4>
+                <ul style="list-style:none; padding:0;">
+                    {% for item in forecast_data %}
+                        <li>
+                            {{ item.dt_txt }} - {{ item.main.temp }}°C - {{ item.weather.0.description }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
