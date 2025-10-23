@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Django Chatbox</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f2f2f2;
+        }
+
+        .chat-container {
+            display: flex;
+            justify-content: space-between;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        .chat-box {
+            width: 48%;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 12px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 8px 12px;
+            border-radius: 15px;
+            margin: 5px 0;
+            word-wrap: break-word;
+        }
+
+        .left {
+            align-self: flex-start;
+            background: #e5e5ea;
+            color: black;
+        }
+
+        .right {
+            align-self: flex-end;
+            background: #007bff;
+            color: white;
+        }
+
+        .input-area {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .input-area button {
+            margin-left: 8px;
+            padding: 10px 15px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .typing {
+            font-size: 13px;
+            color: gray;
+            padding: 0 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <!-- USER 1 -->
+    <div class="chat-box" id="user1-box">
+        <div class="header">User 1</div>
+        <div class="messages" id="user1-messages"></div>
+        <div class="typing" id="user1-typing"></div>
+        <div class="input-area">
+            <input type="text" id="user1-input" placeholder="Type a message...">
+            <button onclick="sendMessage('user1')">Send</button>
+        </div>
+    </div>
+
+    <!-- USER 2 -->
+    <div class="chat-box" id="user2-box">
+        <div class="header">User 2</div>
+        <div class="messages" id="user2-messages"></div>
+        <div class="typing" id="user2-typing"></div>
+        <div class="input-area">
+            <input type="text" id="user2-input" placeholder="Type a message...">
+            <button onclick="sendMessage('user2')">Send</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const socket = new WebSocket("ws://127.0.0.1:8001/ws/chat/");
+
+    const inputs = {
+        user1: document.getElementById("user1-input"),
+        user2: document.getElementById("user2-input")
+    };
+
+    const messagesBox = {
+        user1: document.getElementById("user1-messages"),
+        user2: document.getElementById("user2-messages")
+    };
+
+    const typingLabel = {
+        user1: document.getElementById("user1-typing"),
+        user2: document.getElementById("user2-typing")
+    };
+
+    // Send message
+    function sendMessage(sender) {
+        const input = inputs[sender];
+        const message = input.value.trim();
+        if (message === "") return;
+        socket.send(JSON.stringify({ sender: sender, message: message }));
+        input.value = "";
+    }
+
+    // Typing indicator
+    Object.keys(inputs).forEach(user => {
+        inputs[user].addEventListener("input", () => {
+            socket.send(JSON.stringify({
+                type: "typing",
+                sender: user,
+                is_typing: inputs[user].value.length > 0
+            }));
+        });
+    });
+
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+
+        if (data.type === "chat") {
+            const sender = data.sender;
+            const message = data.message;
+
+            const msg1 = document.createElement("div");
+            msg1.classList.add("message");
+            const msg2 = document.createElement("div");
+            msg2.classList.add("message");
+
+            if (sender === "user1") {
+                msg1.classList.add("right");
+                msg1.textContent = message;
+                msg2.classList.add("left");
+                msg2.textContent = message;
+            } else {
+                msg1.classList.add("left");
+                msg1.textContent = message;
+                msg2.classList.add("right");
+                msg2.textContent = message;
+            }
+
+            messagesBox.user1.appendChild(msg1);
+            messagesBox.user2.appendChild(msg2);
+
+            messagesBox.user1.scrollTop = messagesBox.user1.scrollHeight;
+            messagesBox.user2.scrollTop = messagesBox.user2.scrollHeight;
+        }
+
+        if (data.type === "typing") {
+            const sender = data.sender;
+            const target = sender === "user1" ? "user2" : "user1";
+            typingLabel[target].textContent = data.is_typing ? `${sender} is typing...` : "";
+        }
+    };
+</script>
+
+</body>
+</html>
