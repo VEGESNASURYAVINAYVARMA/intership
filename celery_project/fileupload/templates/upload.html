@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Files (One by One)</title>
+</head>
+<body>
+<h2>Upload Files (One by One)</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="file" required>
+    <button type="submit">Upload</button>
+</form>
+
+{% if message %}
+<h3>Latest Uploaded File:</h3>
+<ul>
+    <li>
+        ✅ {{ message }}
+        <form method="post" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="download" value="{{ message }}">
+            <button type="submit">Download</button>
+        </form>
+    </li>
+</ul>
+{% endif %}
+
+{% if files %}
+<h3>All Uploaded Files:</h3>
+<ul>
+    {% for filename in files %}
+    <li>
+        ✅ {{ forloop.counter }}) {{ filename }}
+        <form method="post" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="download" value="{{ filename }}">
+            <button type="submit">Download</button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
+</body>
+</html>

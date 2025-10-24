@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Django Chatbox</title>
+    <style>
+        body { font-family: Arial; background: #f4f4f4; padding: 20px; }
+        .chat-container { width: 60%; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
+        .messages { height: 400px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px; background: #fafafa; }
+        .left { text-align: left; color: #000; }
+        .right { text-align: right; color: #007bff; }
+        form { margin-top: 15px; display: flex; gap: 10px; }
+        input[type=text] { flex: 1; padding: 8px; }
+        button { padding: 8px 12px; background: #007bff; color: #fff; border: none; cursor: pointer; border-radius: 5px; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <h2>💬 Django Chatbox (User1 & User2)</h2>
+    <div id="messages" class="messages"></div>
+
+    <form id="formUser1">
+        <input type="text" id="msgUser1" placeholder="User1: Type message...">
+        <button type="button" onclick="sendMessage('User1')">Send</button>
+    </form>
+
+    <form id="formUser2">
+        <input type="text" id="msgUser2" placeholder="User2: Type message...">
+        <button type="button" onclick="sendMessage('User2')">Send</button>
+    </form>
+</div>
+
+<script>
+// Fetch and display messages every second
+async function fetchMessages() {
+    const response = await fetch("{% url 'messages_json' %}");
+    const data = await response.json();
+    const container = document.getElementById("messages");
+    container.innerHTML = "";
+    data.forEach(m => {
+        const div = document.createElement("div");
+        div.className = m.sender === "User1" ? "left" : "right";
+        div.textContent = `${m.sender}: ${m.content}`;
+        container.appendChild(div);
+    });
+}
+
+// Send message from website (AJAX)
+async function sendMessage(sender) {
+    const message = sender === "User1"
+        ? document.getElementById("msgUser1").value
+        : document.getElementById("msgUser2").value;
+
+    if (!message.trim()) return;
+
+    await fetch("{% url 'send_message' %}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sender: sender, message: message })
+    });
+
+    if (sender === "User1") document.getElementById("msgUser1").value = "";
+    else document.getElementById("msgUser2").value = "";
+
+    fetchMessages();
+}
+
+// Auto-refresh messages
+setInterval(fetchMessages, 1000);
+fetchMessages();
+</script>
+</body>
+</html>
