@@ -30,7 +30,6 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
-AUTH_USER_MODEL = 'users.User'
 
 # Application definition
 
@@ -90,7 +89,7 @@ WSGI_APPLICATION = 'hybrid_lms.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'lms_users_db',
+        'NAME': 'users_otp_db',
         'USER': 'root',
         'PASSWORD': 'Srujan@1403',
         'HOST': 'localhost',
@@ -141,7 +140,12 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+AUTH_USER_MODEL = 'users.User'
+# Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+FAST2SMS_API_KEY = 'CF8aYvyoKzA6UxfJueNbpGtLPrs319n0qlSk5dRiwWVcMO74gEgdNkDp7mOVRJ324hLPczFoBa1sKMnt'
+
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
@@ -171,5 +175,4 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer'),
 }
 
-FAST2SMS_API_KEY = 'CF8aYvyoKzA6UxfJueNbpGtLPrs319n0qlSk5dRiwWVcMO74gEgdNkDp7mOVRJ324hLPczFoBa1sKMnt'
 
